@@ -49,7 +49,7 @@ class EmailOutputChannel(OutputChannel):
 
         vars = { 'Description' : self.data['description'],
                  'Channel'     : self.data['channel'],
-                 'CanaryToken' : self.data['canarytoken'],
+                 'Canarytoken' : self.data['canarytoken'],
                  'SourceIP'   : self.data['src_ip']
                 }
 

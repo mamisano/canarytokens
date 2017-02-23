@@ -533,4 +533,7 @@
         input.form-control::-webkit-input-placeholder {
           font-size: .7rem;
         }
+        .token-length{
+          font-size: 1.2rem;
+        }
       }
