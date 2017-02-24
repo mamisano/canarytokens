@@ -545,16 +545,16 @@
       }
       @media (max-width: 500px) {
         input.form-control:-moz-placeholder {
-          font-size: .7rem;
+          font-size: .5rem;
         }
         input.form-control::-moz-placeholder {
-          font-size: .7rem;
+          font-size: .5rem;
         }
         input.form-control:placeholder {
-          font-size: .7rem;
+          font-size: .5rem;
         }
         input.form-control::-webkit-input-placeholder {
-          font-size: .7rem;
+          font-size: .5rem;
         }
         .token-length{
           font-size: 1.2rem;
