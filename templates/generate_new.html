@@ -66,7 +66,7 @@
             </li>
           </ul>
         </nav>
-        <h3 class="text-muted">Canarytokens by Thinkst</h3>
+        <h3 class="text-muted"><a style="color: inherit; text-decoration: inherit;" href="/">Canarytokens by Thinkst</a></h3>
       </div>
 
       <div class="jumbotron">
@@ -141,7 +141,7 @@
               <div class="col-md-1">
               </div>
               <div class="col-md-10">
-                <p><button id="save" class="btn btn-lg btn-success btn-fullwidth btn-disabled" href="#" role="button" disabled data-unseen-label="Create my Canarytoken">Fill in the fields above</button></p>
+                <p id="create-token-p"><button id="save" class="btn btn-lg btn-success btn-fullwidth btn-disabled" href="#" role="button" disabled data-unseen-label="Create my Canarytoken">Fill in the fields above</button></p>
               </div>
               <div class="col-md-1">
               </div>
@@ -674,6 +674,18 @@
         }
       }
 
+      $('input').keyup(function(event) {
+        checkType();
+        checkEndpoints();
+        checkMemo();
+        checkWebImage();
+        checkSignedExe();
+        checkClonedWebsite();
+        checkSQLServer();
+
+        //invert UI elements, depending on whether there are errors or not
+        showSave();
+      });
 
       $('input').on('change', function(e){
         checkType();
@@ -682,10 +694,14 @@
         checkWebImage();
         checkSignedExe();
         checkClonedWebsite();
-        checkSQLServer()
+        checkSQLServer();
 
         //invert UI elements, depending on whether there are errors or not
-        save = $('#save');
+        showSave();
+      });
+
+      var showSave = function(){
+        var save = $('#save');
         if (($('.form-control.error-outline').length == 0 && save.prop('disabled')) ||
             ($('.form-control.error-outline').length >  0 && ! save.prop('disabled')))
          {
@@ -694,7 +710,7 @@
           save.prop('disabled', !save.prop('disabled')).text(unseen);
           save.toggleClass('btn-disabled');
         }
-      });
+      }
 
       // $('#save').on('click', function() {
       //   var type = $('input[name=type]').val();
