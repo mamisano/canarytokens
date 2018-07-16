@@ -32,7 +32,6 @@ class EmailOutputChannel(OutputChannel):
 
         # Use the Flask app context to render the emails
         # (this generates the urls + schemes correctly)
-
         rendered_html = env.get_template('emails/notification.html').render(
             Title=self.DESCRIPTION,
             Intro=self.format_report_intro(),
@@ -43,7 +42,7 @@ class EmailOutputChannel(OutputChannel):
         return minify(rendered_html)
 
     def format_report_intro(self,):
-        if self.data['channel'] == 'HTTP':
+        if self.data['channel'] == 'HTTP' or self.data['channel'] == 'AWS API Key Token':
             template = ("An {Type} Canarytoken has been triggered")
         else:
             template = ("A {Type} Canarytoken has been triggered")
@@ -53,7 +52,7 @@ class EmailOutputChannel(OutputChannel):
 
         if self.data['channel'] == 'DNS':
             template += "\n\nPlease note that the source IP refers to a DNS server," \
-                        " rather than the host that triggered the token."
+                        " rather than the host that triggered the token. "
 
         return template.format(
             Type=self.data['channel'])
@@ -69,6 +68,7 @@ class EmailOutputChannel(OutputChannel):
 
         if 'src_ip' in self.data:
             vars['src_ip'] = self.data['src_ip']
+            vars['SourceIP'] = self.data['src_ip']
 
         if 'useragent' in self.data:
             vars['User-Agent'] = self.data['useragent']
@@ -80,7 +80,10 @@ class EmailOutputChannel(OutputChannel):
             vars['Referer'] = self.data['referer']
 
         if 'location' in self.data:
-            vars['Location'] = self.data['location']
+            try:
+                vars['Location'] = self.data['location'].decode('utf-8')
+            except Exception:
+                vars['Location'] = self.data['location']
 
         return vars
 
@@ -96,7 +99,7 @@ class EmailOutputChannel(OutputChannel):
             self.data['tokentype']   = canarydrop._drop['type']
 
         self.data['canarytoken'] = canarydrop['canarytoken']
-        self.data['description'] = canarydrop['memo']
+        self.data['description'] = unicode(canarydrop['memo'], "utf8") if canarydrop['memo'] is not None else ''
         if settings.MAILGUN_DOMAIN_NAME and settings.MAILGUN_API_KEY:
             self.mailgun_send(msg=msg,canarydrop=canarydrop)
         elif settings.MANDRILL_API_KEY:

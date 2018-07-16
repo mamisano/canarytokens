@@ -113,11 +113,38 @@
                   </div>
                 </div>
               </div>
+              <div class="result fast_redirect">
+                <h5>Here's your Fast Redirect token:</h5>
+                <div class="artifacts">
+                  <div class="form-control">
+                    {{ inputcopy('result_fast_redirect') }}
+                  </div>
+                </div>
+              </div>
+              <div class="result slow_redirect">
+                <h5>Here's your Slow Redirect token:</h5>
+                <div class="artifacts">
+                  <div class="form-control">
+                    {{ inputcopy('result_slow_redirect') }}
+                  </div>
+                </div>
+              </div>
               <div class="result dns">
                 <h5>Here's your DNS token:</h5>
                 <div class="artifacts">
                   <div class="form-control">
                     {{ inputcopy('result_dns') }}
+                  </div>
+                </div>
+              </div>
+              <div class="result aws_keys">
+                <h5>Here's your AWS key token:</h5>
+                <div class="artifacts">
+                  <div class="form-control">
+                    {{ textareacopy('result_aws_keys') }}
+                  </div>
+                  <div class="form-control">
+                    <a class="btn btn-large btn-success file-download" data-fmt="awskeys">Download your AWS Creds</a>
                   </div>
                 </div>
               </div>
@@ -321,7 +348,7 @@
 
       <footer class="footer">
         <p>Brought to you by <a href="https://canary.tools/" target="_blank">Thinkst Canary</a>, our insanely easy-to-use honeypot solution that deploys in just four minutes. <strong>Know. When it matters.</strong></p>
-        <p>&copy; Thinkst Applied Research 2015&ndash;2017</p>
+        <p>&copy; Thinkst Applied Research 2015&ndash;2018</p>
         <p id="mainsite" class="hidden">This <a href="http://canarytokens.org/">Canarytokens</a> installation is unaffiliated with Thinkst Applied Research.</p>
       </footer>
 
@@ -399,6 +426,12 @@
         var _handleWebResponse = function(data) {
           $('#result_web').val(data['generated_url']);
         };
+        var _handleFastRedirectResponse = function(data) {
+          $('#result_fast_redirect').val(data['generated_url']);
+        };
+        var _handleSlowRedirectResponse = function(data) {
+          $('#result_slow_redirect').val(data['generated_url']);
+        };
         var _handleDNSResponse = function(data) {
           $('#result_dns').val(data['generated_hostname']);
         };
@@ -437,12 +470,25 @@
           $('#signed_exe').prop('download', data['file_name']);
           $('#signed_exe').text('Save ' + data['file_name']);
         }
+
+        var _handleAWSKeysResponse = function(data){
+          $('#result_aws_keys').val('[Default]'+
+          '\nAccess key Id: '+ data['aws_access_key_id']+
+          '\nSecret Access Key: '+ data['aws_secret_access_key']);
+          $('#result_aws_keys').css('height','50px').css('text-align','left').css('width','90%');
+          $('a.file-download').each(function (i, e){
+            e = $(e);
+            e.prop('href', 'download?fmt='+e.data('fmt')+'&token='+data['canarytoken']+'&auth='+data['auth']);
+          });
+        }
+
         var _handleDefaultResponse = function(data) {
           return;
         }
 
         var _responseCallbacks = {'web': _handleWebResponse,
                                   'dns': _handleDNSResponse,
+                                  'aws_keys': _handleAWSKeysResponse,
                                   'web_image': _handleWebResponse,
                                   'ms_word' : _handleFileDownloadResponse,
                                   'adobe_pdf' : _handleFileDownloadResponse,
@@ -453,6 +499,8 @@
                                   'smtp': _handleSMTPResponse,
                                   'sql_server': _handleSQLServerResponse,
                                   'signed_exe': _handlerSignedExeResponse,
+                                  'fast_redirect': _handleFastRedirectResponse,
+                                  'slow_redirect': _handleSlowRedirectResponse,
                                   'default':   _handleDefaultResponse
                                  };
         var displayToken = function(data) {

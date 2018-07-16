@@ -72,6 +72,14 @@ class InputChannel(Channel):
 
         msg['time'] = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
         msg['channel'] = self.name
+
+        if 'src_data' in kwargs and 'aws_keys_event_source_ip' in kwargs['src_data']:
+            msg['src_ip'] = kwargs['src_data']['aws_keys_event_source_ip']
+            msg['channel'] = 'AWS API Key Token'
+
+        if 'src_data' in kwargs and 'aws_keys_event_user_agent' in kwargs['src_data']:
+            msg['useragent'] = kwargs['src_data']['aws_keys_event_user_agent']
+
         if params.get('body_length', 999999999) <= 140:
             msg['body'] = """Canarydrop@{time} via {channel_name}: """\
                 .format(channel_name=self.name,
@@ -116,7 +124,6 @@ http://{host}/history?token={token}&auth={auth}
             msg['from_display'] = settings.ALERT_EMAIL_FROM_DISPLAY
         if params.get('from_address_required', False):
             msg['from_address'] = settings.ALERT_EMAIL_FROM_ADDRESS
-
         return msg
 
     def dispatch(self, **kwargs):

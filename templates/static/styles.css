@@ -407,6 +407,15 @@
         border-radius: 6px;
         margin-bottom: 24px;
       }
+      #endpoints_errors {
+        border: 1px solid red;
+        margin: 24px 0px;
+        padding: 0px 5px;
+      }
+      #endpoints_errors pre {
+        color: #eceeef;
+        background: firebrick;
+      }
       .map{
         position: relative;
         margin-bottom: 10px;
@@ -516,6 +525,12 @@
       }
       a.icon-svn:before {
         background-image: url("/resources/svn.png");
+      }
+      a.icon-aws:before {
+        background-image: url("/resources/aws.png");
+      }
+      a.icon-redirect:before {
+        background-image: url("/resources/redirect.png");
       }
 
       @media (max-width: 768px) {

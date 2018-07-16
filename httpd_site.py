@@ -23,7 +23,7 @@ from queries import save_canarydrop, save_imgur_token, get_canarydrop,\
                     create_linkedin_account, create_bitcoin_account,\
                     get_linkedin_account, get_bitcoin_account, \
                     save_clonedsite_token, get_all_canary_sites, get_canary_google_api_key,\
-                    is_webhook_valid
+                    is_webhook_valid, get_aws_keys, get_all_canary_domains
 
 from exception import NoCanarytokenPresent
 from ziplib import make_canary_zip
@@ -80,7 +80,10 @@ class GeneratorPage(resource.Resource):
                                       'svn',
                                       'smtp',
                                       'sql_server',
-                                      'signed_exe']:
+                                      'aws_keys',
+                                      'signed_exe',
+                                      'fast_redirect',
+                                      'slow_redirect']:
                     raise Exception()
             except:
                 raise Exception('Unknown type')
@@ -105,7 +108,7 @@ class GeneratorPage(resource.Resource):
 
             if webhook and not is_webhook_valid(webhook):
                 response['Error'] = 3
-                raise Exception('Invalid webhook supplied')
+                raise Exception('Invalid webhook supplied. Confirm you can POST to this URL.')
 
             alert_email_enabled = False if not email else True
             alert_webhook_enabled = False if not webhook else True
@@ -168,6 +171,20 @@ class GeneratorPage(resource.Resource):
                 if not request.args.get('type', None)[0] == 'qr_code':
                     raise Exception()
                 response['qrcode_png'] = canarydrop.get_qrcode_data_uri_png()
+            except:
+                pass
+            
+            try:
+                if not request.args.get('type', None)[0] == 'aws_keys':
+                    raise Exception()
+                keys = get_aws_keys(token=canarytoken.value(), server=get_all_canary_domains()[0])
+                if not keys:
+                    raise Exception()
+                response['aws_access_key_id'] = keys[0]
+                response['aws_secret_access_key'] = keys[1]
+                canarydrop['aws_access_key_id'] = keys[0]
+                canarydrop['aws_secret_access_key'] = keys[1]
+                save_canarydrop(canarydrop)
             except:
                 pass
 
@@ -245,7 +262,29 @@ class GeneratorPage(resource.Resource):
             except:
                 pass
 
+            try:
+                if request.args.get('type', None)[0] != 'fast_redirect':
+                    raise Exception()
+                
+                if not request.args['redirect_url'][0]:
+                    raise Exception()
 
+                canarydrop['redirect_url'] = request.args['redirect_url'][0]
+                save_canarydrop(canarydrop)
+            except:
+                pass
+
+            try:
+                if request.args.get('type', None)[0] != 'slow_redirect':
+                    raise Exception()
+                
+                if not request.args['redirect_url'][0]:
+                    raise Exception()
+
+                canarydrop['redirect_url'] = request.args['redirect_url'][0]
+                save_canarydrop(canarydrop)
+            except:
+                pass
 
         except Exception as e:
             if response['Error'] is None:
@@ -294,9 +333,17 @@ class DownloadPage(resource.Resource):
                                   'attachment; filename={token}.pdf'\
                                   .format(token=token))
                 return make_canary_pdf(hostname=canarydrop.get_hostname(nxdomain=True, with_random=False))
+            elif fmt == 'awskeys':
+                request.setHeader("Content-Type", "text/plain")
+                request.setHeader("Content-Disposition",
+                                  'attachment; filename=credentials')
+
+                text="[default]\naws_access_key={id}\naws_secret_access_key={k}"\
+                        .format(id=canarydrop['aws_access_key_id'], k=canarydrop['aws_secret_access_key'])
+                return text 
+                
         except Exception as e:
             log.err('Unexpected error in download: {err}'.format(err=e))
-
 
         return NoResource().render(request)
 
@@ -454,6 +501,9 @@ class HistoryPage(resource.Resource):
                     formatted_timestamp = datetime.datetime.fromtimestamp(
                                 float(timestamp)).strftime('%Y %b %d %H:%M:%S')
                     canarydrop['triggered_list'][formatted_timestamp] = canarydrop['triggered_list'].pop(timestamp)
+
+            if canarydrop.get('memo'):
+                canarydrop['memo'] = unicode(canarydrop['memo'], "utf8")
 
         except (TypeError, NoCanarytokenPresent):
             return NoResource().render(request)
